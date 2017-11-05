@@ -2,88 +2,134 @@
 
 ## User Story
 
-Create a browser based version of the game ‘Rock, Paper, Scissors’.
+Create a browser based version of the game [Rock, Paper, Scissors](https://en.wikipedia.org/wiki/Rock%E2%80%93paper%E2%80%93scissors).
 
-Don't know the game? http://en.wikipedia.org/wiki/Rock-paper-scissors
-
-## Acceptance Criteria
-
-- Ability to play against the computer
-- Ability to simulate a game (Computer vs Computer)
-- Ability to restart the game
-- Computer generated plays need to be random
-
-## Guidelines
-
-- The UI can be as simple or as complex as you wish
-- We are keen to see how much you think is enough, and how much would go into a Minimum Viable Product.  As a guide, elegant and simple wins over feature rich every time, though extra gold stars are given to people who get excited and do more because they are having fun
-- We also consider the extensibility of the code produced.  Well factored code should be relatively easily extended http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock may be a natural extension
-- Bonus points for vanilla JavaScript, unit tests, good accessibility, responsive design, well commented code and comprehensive commit history
-- If you could show us how to test-drive your solution using TDD, that's a big plus!
-
-## Technical Requirements
-
-- We prefer to use vanilla Javascript and the latest EcmaScript (ES6+) features
-- Using libs/frameworks is not forbidden, but we want to see your code, not someone else's
-- You can style your game assets using SASS or pure CSS
-- The solution should work in IE9+ and all modern browsers
-
-## How to start coding
-
-Alongside this document you should find a prepared project with a few example files that help you to get started. Feel free to change the structure or add new files as you see fit.
-
-We provided similar but simplified tooling / setup we use on an everyday basis here at Gumtree UK, but you're welcome to change anything.
-
-### Tooling
-
-The tooling we provide is the following:
-
-- `webpack` to modularise your Javascript code
-- `babel` to utilise ES6+ and Stage-3 features
-- `node-sass` to modularise your styling via SASS
-- `eslint` to make sure your code meets the standards
-- `karma`, `mocha` and `chai` to help you write and run your unit tests in various browsers
-
-### Install dependencies
-
-To start developing, fork and clone the project first, then make sure you have Node.js *4.x* or higher.
-
-You'll need `yarn` to install the dependencies we locked in via the `yarn.lock` checked in to this repo.
-
-You can install `yarn` if you haven't done so via `brew install yarn`.
-
-Once you have `yarn` installed, just run
+## Quick start
 
 ```
 $ yarn install
+$ yarn build
+$ yarn serve
 ```
 
-from the project folder.
+And open your browser at [http://localhost:8000/]()
 
-### Helpful commands
+For the tests (karma):
 
-You'll have the following CLI commands available:
+```
+$ yarn test
+```
 
-- `yarn run dev` running `webpack-dev-server` and serving the project on `localhost`
-- `yarn run test -- --browsers Chrome,Safari` running unit tests via `karma` e.g. in Chrome and Safari
-- `yarn run lint` running `eslint` against your source (and config) files
-- `yarn run build` running `webpack` build
-- `yarn run serve` serving the `build/` folder contents
+and point your Chrome/Firefox/Safari/IE9+ to [http://localhost:9998/]() to see test
+results in the console.
 
-Whilst developing, you'll most likely to run `yarn run dev` in a terminal window, `webpack` will take care of everything, bundling your project to an in-memory `build/` folder and serving it from there. Also, `yarn run test` in another terminal window to see your tests running / failing on every file change which comes very handy if you're doing TDD.
+## Design details
 
-If you'd like to see the output as files, just run `yarn run build` and the result will be found under a real `build/` folder.
+I tried to keep the code more modular and easily expandable as possible.
+To do that, I decided to split this web application in different sections:
 
-### Project structure
+* a configuration file;
+* a game engine;
+* an _extension_ to the game engine that takes care of the web browser rendering.
 
-We've added a few example files under the `src/` folder as a sanity check that the project is up and working.
 
-When you first run `yarn run dev` and open the project in the browser at the given url, you should see a text saying *"you are ready to go!"* in white on a green background and *"it works well!"* in the browser's console.
+Since in the requirements is asked the possibility to _restart_ a game, I thought that a
+game should be made by a certain number of _rounds_.
+This value is configurable by changing the `roundsToWin` value in the config.
 
-We hope you're already familiar with the CommonJS pattern that Node.js (and `webpack`) uses or the ES2015/ES6 modules. You'll see some examples in the provided files under the `src/js/` folder.
+The rules of the game are also defined in the config: the `moves` member is an object of
+arrays that specifies for each move which other move(s) it beats. 
 
-The `src/index.ejs` file is the template to generate `build/index.html` which `webpack` takes care of on the fly. You can add your markup to it as normal but please note, that the generated `main.css` and `main.js` is injected in by `webpack` into the `head` and `body` elements.
+E.g.:
 
-Hope it all makes sense, we're looking forward to your solution, happy coding! :)
+```
+moves: {
+  rock: [
+    'scissors'
+  ]
+}
+```
 
-*The Gumtree UK dev team*
+this means that _rock_ wins over _scissors_. I chose an array to support more complicated configs.
+Basically, to support different rules, you just need to change the config and create the corresponding
+icons in `_buttons.scss`.
+
+Regarding the interface, I opted for a very lean one. The first screen contains just two buttons to
+(re)start the game in the two modes asked in the requirements and a panel with the rules of the game
+(autogenerated from the config).
+
+Initially I thought that React would have been perfect for this game, but I wanted to stick as much as
+possible to the requirement of trying to avoid libraries and frameworks, so I went for a 100%
+vanilla JS implementation, also because it looked like a fun challenge (especially for the IE9 support part) :)
+
+Modern browser have also some additional eye candy, like flashing animation on draw (sorry, IE9),
+but the functionality of the game has been tested in 4 different browsers, IE9 included.
+
+
+## Implementation details
+
+I kept all the boilerplate configuration and I added the coverage support to Karma, which
+I found useful during development.
+
+Following a TDD workflow, I started implementing an agnostic game engine. This can be re-used
+even on server side applications.
+It abstracts as much as possible, for instance there is even no concept of "game mode".
+The game engine just does the following:
+
+* reads the game rules;
+* checks for round and game winners;
+* returns all the possible moves;
+* picks a random move.
+
+Then I extended the game engine class with a more specific `RockPaperScissors` class.
+This one is written specifically for the browsers, and wraps game engine specific methods to
+render a complete web application in the browser. I took inspiration from React & co. by just
+adding a wrapper in the markup, and by rendering all the webapp into it.
+
+For the web specific module, I wrote also some factory methods (`factories.js`) to optimise
+my code and avoid repetitions.
+
+The CSS has been designed with a mobile-first approach, using a _bootstrap-like_ set of
+breakpoints. I am a big fan of `flex`, but I had to fallback on other sets of rules to
+design the layout and support IE9.
+
+### Game modes
+
+Both **Player vs AI** and **AI vs AI** modes have some sections in common, such as
+checking the winner of the round.
+
+For the first mode, I thought to show the AI move straight away after the human
+player's pick.
+
+While for Player vs AI this is fine, in the AI vs AI mode this would result in an
+entire game played in a fraction of seconds, which is probably something not desired
+for a good user experience. I thought then to add a simple interval (3 seconds) between
+each AI vs AI round, to make the game more easy (and even engaging!) to follow.
+
+### Game ending
+
+When one of the two players reaches the `roundToWin` score, the game ends. A game over
+message is shown, and no further moves are possible, but it is possible to start a new
+game by using one of the two buttons on top.
+
+
+## Final considerations
+
+Some thoughts on the project for further developments:
+
+* configuration could be expanded with other variables (e.g. time interval between
+AI rounds), and configuration checks could be more robust (e.g. syntax checks, valid rules relationships, etc.);
+* adding keyboard support: every move could have a hotkey, specified directly in config;
+* if IE9 support is important, it'd be nice to introduce external libraries as modernizr,
+for example to support animations;
+* there is no `Player` class at the moment, because the requirements were really limited
+and even with an eye to the expandability I didn't want to overcomplicate the code.
+Anyway, I can think of scenarios with features such as a history of games for a player,
+or the possibility to set the player name (or an avatar, why not!), in this case a refactor
+involving a new `Player` class could be definitely taken into account.
+
+
+## Bonus
+
+Thanks for reading until here. You deserve a gift :) Check out the commented configuration
+in `config.js` to play a [more interesting version](http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock) of the game :) 

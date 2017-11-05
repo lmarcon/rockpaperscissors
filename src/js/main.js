@@ -1,5 +1,9 @@
 require('../css/main.scss');
 
-import print from './module';
+import config from './config';
+import {domReady} from './utils';
+import RockPaperScissors from './RockPaperScissors';
 
-print('it works well!');
+domReady(function() {
+	new RockPaperScissors(config, '#game');
+});

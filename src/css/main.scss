@@ -1,7 +1,158 @@
-body {
-	background-color: green;
+@import "./breakpoints";
+@import "./buttons";
+@import "./variables";
 
-	h1 {
-		color: white;
+html, body, p, ul {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: $grey-100;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.hidden {
+  display: none;
+}
+
+#game {
+  max-width: 100%;
+
+  @include breakpoint(sm) {
+	margin: auto;
+	max-width: 800px;
+  }
+
+  * {
+	box-sizing: border-box;
+	outline: none;
+  }
+
+  .button__control {
+	color: $white;
+	border: 0;
+	background: $blue-500;
+	font-size: 16px;
+	padding: 12px;
+	width: 50%;
+
+	&:first-child {
+	  border-right: 1px solid $white;
 	}
+  }
+
+  .board {
+	background: $white;
+	border: 1px solid $grey-200;
+	display: table;
+	width: 100%;
+
+	&__p1, &__p2 {
+	  display: inline-block;
+	  padding: 5px;
+	  text-align: center;
+	  vertical-align: middle;
+	  width: 50%;
+
+	  @include breakpoint(sm) {
+		display: table-cell;
+		height: 300px;
+	  }
+	}
+
+	&__p1 {
+	  border-right: 1px solid $grey-200;
+	}
+
+	.button {
+	  animation: .7s flash linear;
+	  animation-iteration-count: 1;
+	  background-color: $grey-200;
+	  background-repeat: no-repeat;
+	  background-position: center center;
+	  background-size: 50%;
+	  border-radius: 15px;
+	  border-width: 0;
+	  display: inline-block;
+	  height: 120px;
+	  margin: 5px 0;
+	  width: 120px;
+
+	  & + .button {
+		@include breakpoint(sm) {
+		  margin-left: 5px;
+		}
+	  }
+
+	  &.clickable {
+		cursor: pointer;
+
+		&:focus {
+		  background-color: $amber-100;
+		}
+
+		&:active {
+		  background-color: $grey-300;
+		}
+	  }
+	}
+
+  }
+
+  .score {
+	display: table;
+	width: 100%;
+
+	&__p1, &__p2 {
+	  background: transparent;
+	  color: $blue-500;
+	  display: table-cell;
+	  font-size: 30px;
+	  height: 30px;
+	  text-align: center;
+	  vertical-align: middle;
+	  width: 50%;
+
+	  @include breakpoint(sm) {
+		font-size: 60px;
+		height: 100px;
+	  }
+	}
+  }
+
+  .message {
+	text-align: center;
+
+	.message__body {
+	  background-color: $white;
+	  border: 1px solid $grey-200;
+	  color: $black;
+	  font-size: 20px;
+	  padding: 25px;
+	  z-index: 2;
+	}
+  }
+
+  .rules {
+	background-color: $white;
+	border: 1px solid $grey-200;
+	color: $black;
+	list-style-type: circle;
+	padding: 15px 40px;
+
+	li {
+	  padding: 5px 0;
+
+	  &:first-letter {
+		text-transform: uppercase;
+	  }
+	}
+  }
+}
+
+@keyframes flash {
+  50% {
+	background-color: $amber-100;
+  }
 }
